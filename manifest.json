@@ -1,0 +1,20 @@
+{
+
+    "manifest_version": 2,
+    "name": "NetflixRate",
+    "version": "1.0",
+
+    "description": "Adds ratings to Netflix JawboneContent",
+
+    "content_scripts": [{
+        "matches": ["https://www.netflix.com/browse",
+            "http://www.netflix.com/browse"
+        ],
+        "js": ["netflixRate.js"]
+    }],
+    "permissions": [
+        "https://www.netflix.com/*",
+        "http://www.omdbapi.com/*"
+    ]
+
+}
