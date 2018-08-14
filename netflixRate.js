@@ -1,46 +1,59 @@
-function successCallback(json, elem) {
-    const target = elem.querySelector('.jawBone .overview .meta.video-meta ');
-    let innerHTML = "";
-    if (target !== null && target.querySelector('.netflixRate[data="rating"]') === null && json["Ratings"] !== undefined) {
+function successCallback(json, target, title) {
+    if (json["Ratings"] !== undefined) {
+
+        var node = document.createElement("div");
+        node.style.paddingBottom = "5px";
+        node.style.paddingLeft = "10px";
+        node.style.display = "flex";
+        node.className = 'netflixRate-container';
+
+
         json["Ratings"].forEach(rating => {
-            // rating["Source"]
-            innerHTML += "<div style='padding-right:15px;'>" + "<span class='netflixRate  " + rating["Source"].replace(/ /g, '') + "' data='rating' style='vertical-align: middle;font-size:20px;font-weight:bold;'> " + rating["Value"] + "</span></br>" + "</div>";
+            let innerNode = document.createElement("div");
+            let source = rating["Source"].replace(/ /g, '');
+            innerNode.className = "netflixRate " + source;
+            innerNode.style.paddingRight = "15px";
+            innerNode.textContent = rating["Value"];
+            
+            node.appendChild(innerNode);
         });
-        innerHTML = "<div class='netflixRate-container' style='padding-bottom:5px;padding-left:10px;display: flex;'>" + innerHTML + "</div>";
-        target.innerHTML += innerHTML;
-    } else if (json["Ratings"] === undefined) {
-        //console.log("Data not found");
+
+        target.appendChild(node); 
+
     } else {
-        //console.log("ERROR: not adding html as there should already be html");
+        console.log(title + " has no rating data.");
     }
 }
 
-function error(errorCode) {
-    //console.log("Error in the API request call. Error Code: " + errorCode);
+function errorCallback(errorCode, title) {
+    console.log("Error in the API request call for "+title+". Error Code: " + errorCode);
 }
 
 
 function omdbRequest(elem) {
     if (elem) {
-        let title = "";
-        if (elem.querySelectorAll(".jawBone .jawbone-title-link .logo").item(0)) {
-            title = elem.querySelectorAll(".jawBone .jawbone-title-link .logo").item(0).alt;
-        } else {
-            title = elem.querySelectorAll(".jawBone .image-fallback-text").item(0).innerHTML;
-        }
-
-        let url = "http://www.omdbapi.com/?apikey=88b7e808&t=" + encodeURIComponent(title);
-
-        const xml = new XMLHttpRequest();
-        xml.onreadystatechange = () => {
-            if (xml.readyState === 4 && xml.status === 200) {
-                successCallback(JSON.parse(xml.responseText), elem);
-            } else if (xml.readyState === 4 && xml.status !== 200) {
-                error(xml.status);
+        const target = elem.querySelector('.jawBone .overview .meta.video-meta ');
+        if (target !== null && target.querySelector('.netflixRate-container') === null) {
+            let title = "";
+            if (elem.querySelectorAll(".jawBone .jawbone-title-link .logo").item(0)) {
+                title = elem.querySelectorAll(".jawBone .jawbone-title-link .logo").item(0).alt;
+            } else {
+                title = elem.querySelectorAll(".jawBone .image-fallback-text").item(0).innerHTML;
             }
-        };
-        xml.open("GET", url, true);
-        xml.send();
+
+            let url = "http://www.omdbapi.com/?apikey=88b7e808&t=" + encodeURIComponent(title);
+
+            const xml = new XMLHttpRequest();
+            xml.onreadystatechange = () => {
+                if (xml.readyState === 4 && xml.status === 200) {
+                    successCallback(JSON.parse(xml.responseText), target, title);
+                } else if (xml.readyState === 4 && xml.status !== 200) {
+                    errorCallback(xml.status, title);
+                }
+            };
+            xml.open("GET", url, true);
+            xml.send();
+        }
     }
 }
 
